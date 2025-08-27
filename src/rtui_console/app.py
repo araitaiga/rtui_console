@@ -55,18 +55,18 @@ class ConsoleApp(App):
     }
 
     NodeTreePanel {
-        padding-left: 2;
+        padding: 0 1;
         height: 40%;
     }
 
     LogLevelPanel {
-        padding-left: 2;
+        padding: 0 1;
         height: 30%;
         border-top: inner $primary;
     }
 
     TextFilterPanel {
-        padding: 1 2;
+        padding: 0 1;
         height: 30%;
         border-top: inner $primary;
     }

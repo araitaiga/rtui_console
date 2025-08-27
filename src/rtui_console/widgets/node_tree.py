@@ -13,9 +13,14 @@ class NodeTreePanel(Static):
 
     DEFAULT_CSS = """
     NodeTreePanel {
-        padding-left: 2;
-        width: 30%;
+        padding: 0;
+        width: 100%;
         height: 40%;
+    }
+
+    Tree {
+        width: 100%;
+        scrollbar-size: 1 1;
     }
     """
 

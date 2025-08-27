@@ -16,8 +16,8 @@ class TextFilterPanel(Static):
 
     DEFAULT_CSS = """
     TextFilterPanel {
-        padding: 1 2;
-        width: 30%;
+        padding: 1;
+        width: 100%;
         height: 30%;
         border-top: inner $primary;
     }
@@ -25,10 +25,16 @@ class TextFilterPanel(Static):
     .filter-container {
         layout: vertical;
         height: 100%;
+        width: 100%;
     }
 
-    .filter-input {
+    Input {
+        width: 100%;
         margin-top: 1;
+    }
+
+    Label {
+        width: 100%;
     }
     """
 
