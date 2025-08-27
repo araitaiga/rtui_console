@@ -7,11 +7,15 @@ from .models import LogMessage
 
 
 class NodeSelected(Message):
-    """Event when a node is selected from the tree"""
+    """Event when nodes are selected from the tree"""
 
-    def __init__(self, node_name: str) -> None:
+    def __init__(self, node_names) -> None:
         super().__init__()
-        self.node_name = node_name
+        # Handle both single string and list of strings
+        if isinstance(node_names, str):
+            self.node_names = [node_names]
+        else:
+            self.node_names = list(node_names) if node_names else []
 
 
 class LogMessageSelected(Message):
@@ -36,11 +40,15 @@ class TestLogsGenerated(Message):
 
 
 class LevelFilterChanged(Message):
-    """Event when log level filter is changed"""
+    """Event when log level filters are changed"""
 
-    def __init__(self, level: str) -> None:
+    def __init__(self, levels) -> None:
         super().__init__()
-        self.level = level
+        # Handle both single string and list of strings
+        if isinstance(levels, str):
+            self.levels = [levels]
+        else:
+            self.levels = list(levels) if levels else []
 
 
 class TextFilterChanged(Message):

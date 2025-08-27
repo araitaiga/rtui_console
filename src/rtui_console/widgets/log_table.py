@@ -25,8 +25,8 @@ class LogTablePanel(Static):
         self.table = DataTable(cursor_type="row")
         self.log_messages = []
         self.filtered_messages = []
-        self.selected_node = "ALL"
-        self.min_level = LogLevel.DEBUG
+        self.selected_nodes = ["ALL"]
+        self.selected_levels = ["ALL"]
         self.filter_text = ""
 
     def compose(self) -> ComposeResult:
@@ -45,14 +45,16 @@ class LogTablePanel(Static):
 
         self.apply_filters()
 
-    def set_node_filter(self, node_name: str):
-        """Set node filter"""
-        self.selected_node = node_name
+    def set_node_filter(self, node_names):
+        """Set node filter (multiple nodes supported)"""
+        self.selected_nodes = ([node_names] if isinstance(node_names, str)
+                               else list(node_names) if node_names else ["ALL"])
         self.apply_filters()
 
-    def set_level_filter(self, min_level: int):
-        """Set minimum log level filter"""
-        self.min_level = min_level
+    def set_level_filter(self, levels):
+        """Set level filter (multiple levels supported)"""
+        self.selected_levels = ([levels] if isinstance(levels, str)
+                                else list(levels) if levels else ["ALL"])
         self.apply_filters()
 
     def set_text_filter(self, text: str):
@@ -61,16 +63,26 @@ class LogTablePanel(Static):
         self.apply_filters()
 
     def apply_filters(self):
-        """Apply all filters to log messages"""
+        """Apply all filters to log messages with OR logic for multi-selection"""
         filtered = self.log_messages.copy()
 
-        # Filter by node
-        if self.selected_node != "ALL":
-            filtered = [msg for msg in filtered if msg.name ==
-                        self.selected_node]
+        # Filter by nodes (OR logic)
+        if self.selected_nodes and "ALL" not in self.selected_nodes:
+            filtered = [
+                msg for msg in filtered if msg.name in self.selected_nodes]
 
-        # Filter by level
-        filtered = [msg for msg in filtered if msg.level >= self.min_level]
+        # Filter by levels (OR logic)
+        if self.selected_levels and "ALL" not in self.selected_levels:
+            level_values = []
+            for level_str in self.selected_levels:
+                try:
+                    level_values.append(int(level_str))
+                except (ValueError, TypeError):
+                    pass
+
+            if level_values:
+                filtered = [
+                    msg for msg in filtered if msg.level in level_values]
 
         # Filter by text
         if self.filter_text:

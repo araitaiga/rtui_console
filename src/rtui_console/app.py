@@ -2,21 +2,15 @@
 Main application for ROS2 Console Viewer
 """
 from datetime import datetime
-import os
 import queue
-from typing import Optional
 
-from textual import on
 from textual.app import App
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.containers import Vertical
-from textual.widgets import Button
 from textual.widgets import Footer
 from textual.widgets import Header
-from textual.widgets import Input
-from textual.widgets import Select
 
 from .events import LevelFilterChanged
 from .events import LogMessageSelected
@@ -28,7 +22,6 @@ from .models import LogLevel
 from .models import LogMessage
 from .ros_client import LogGenerator
 from .ros_client import ROS2Client
-from .widgets import ControlPanel
 from .widgets import LogDetailPanel
 from .widgets import LogLevelPanel
 from .widgets import LogTablePanel
@@ -55,8 +48,10 @@ class ConsoleApp(App):
     }
 
     NodeTreePanel {
-        padding: 0 1;
+        padding: 1;
         height: 40%;
+        border: inner $primary;
+        background: $panel;
     }
 
     LogLevelPanel {
@@ -85,27 +80,10 @@ class ConsoleApp(App):
         height: 30%;
         padding: 1 2;
     }
-
-    ControlPanel {
-        height: auto;
-        padding: 1 2;
-        border-top: inner $primary;
-    }
-
-    .controls-row {
-        layout: horizontal;
-        height: auto;
-        margin: 1 0;
-    }
-
-    .control-item {
-        margin: 0 1;
-    }
     """
 
     TITLE = "ROS2 Console Viewer"
     BINDINGS = [
-        Binding("r", "reload", "Reload", key_display="r"),
         Binding("c", "clear", "Clear", key_display="c"),
         Binding("p", "toggle_pause", "Pause/Resume", key_display="p"),
         Binding("t", "test_logs", "Test Logs", key_display="t"),
@@ -126,7 +104,6 @@ class ConsoleApp(App):
         self.text_filter_panel = TextFilterPanel(id="text_filter")
         self.log_table_panel = LogTablePanel(id="log_table")
         self.log_detail_panel = LogDetailPanel(id="log_detail")
-        self.control_panel = ControlPanel(id="controls")
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -140,7 +117,6 @@ class ConsoleApp(App):
                 yield self.log_table_panel
                 yield self.log_detail_panel
 
-        yield self.control_panel
         yield Footer()
 
     def on_mount(self) -> None:
@@ -203,7 +179,7 @@ class ConsoleApp(App):
     # Event Handlers (rtui pattern)
     def on_node_selected(self, event: NodeSelected) -> None:
         """Handle node selection from tree"""
-        self.log_table_panel.set_node_filter(event.node_name)
+        self.log_table_panel.set_node_filter(event.node_names)
 
     def on_log_message_selected(self, event: LogMessageSelected) -> None:
         """Handle log message selection from table"""
@@ -220,41 +196,13 @@ class ConsoleApp(App):
 
     def on_level_filter_changed(self, event: LevelFilterChanged) -> None:
         """Handle log level filter change"""
-        if event.level == "ALL":
-            self.log_table_panel.set_level_filter(LogLevel.DEBUG)
-        else:
-            self.log_table_panel.set_level_filter(int(event.level))
+        self.log_table_panel.set_level_filter(event.levels)
 
     def on_text_filter_changed(self, event: TextFilterChanged) -> None:
         """Handle text filter change"""
         self.log_table_panel.set_text_filter(event.text)
 
-    @on(Button.Pressed, "#pause_btn")
-    def on_pause_pressed(self) -> None:
-        """Handle pause/resume button"""
-        self.action_toggle_pause()
-
-    @on(Button.Pressed, "#clear_btn")
-    def on_clear_pressed(self) -> None:
-        """Handle clear button"""
-        self.action_clear()
-
-    @on(Button.Pressed, "#test_btn")
-    def on_test_pressed(self) -> None:
-        """Handle test logs button"""
-        self.action_test_logs()
-
-    @on(Button.Pressed, "#save_btn")
-    def on_save_pressed(self) -> None:
-        """Handle save button"""
-        self.save_logs()
-
     # Actions (rtui pattern)
-    def action_reload(self) -> None:
-        """Reload/refresh logs"""
-        # Could implement reconnection logic here
-        self.notify("Reload functionality not yet implemented")
-
     def action_clear(self) -> None:
         """Clear all logs"""
         self.log_table_panel.clear_logs()
@@ -264,7 +212,6 @@ class ConsoleApp(App):
     def action_toggle_pause(self) -> None:
         """Toggle pause/resume"""
         self.paused = not self.paused
-        self.control_panel.update_pause_button(self.paused)
         status = "paused" if self.paused else "resumed"
         self.notify(f"Log reception {status}")
 
@@ -288,13 +235,3 @@ class ConsoleApp(App):
             self.notify(f"Logs saved to {filename}")
         except Exception as e:
             self.notify(f"Error saving logs: {e}", severity="error")
-
-    def get_stats(self) -> dict:
-        """Get application statistics"""
-        return {
-            "total_logs": self.log_table_panel.get_total_count(),
-            "filtered_logs": self.log_table_panel.get_filtered_count(),
-            "ros_status": self.ros_client.get_status(),
-            "paused": self.paused,
-            "nodes_count": len(self.node_tree_panel.nodes)
-        }

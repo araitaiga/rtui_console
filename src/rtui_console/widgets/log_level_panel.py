@@ -1,16 +1,20 @@
 """
 Log level selection panel widget
 """
+from textual import on
 from textual.app import ComposeResult
+from textual.containers import ScrollableContainer
+from textual.containers import Vertical
+from textual.widgets import Checkbox
+from textual.widgets import Label
 from textual.widgets import Static
-from textual.widgets import Tree
 
 from ..events import LevelFilterChanged
 from ..models import LogLevel
 
 
 class LogLevelPanel(Static):
-    """Left panel showing log levels in a tree structure"""
+    """Left panel showing log levels with checkboxes for multi-selection"""
 
     DEFAULT_CSS = """
     LogLevelPanel {
@@ -20,53 +24,100 @@ class LogLevelPanel(Static):
         border-top: inner $primary;
     }
 
-    Tree {
+    ScrollableContainer {
         width: 100%;
+        height: 100%;
         scrollbar-size: 1 1;
+    }
+
+    Checkbox {
+        width: 100%;
+        margin: 0;
+    }
+
+    .header-label {
+        width: 100%;
+        background: $accent;
+        color: $text;
+        padding: 0 1;
     }
     """
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.level_tree = Tree("Log Levels")
-        self.level_tree.auto_expand = True
-        self.selected_level = "ALL"
+        self.selected_levels = {"ALL"}
+        self.level_checkboxes = {}
 
     def compose(self) -> ComposeResult:
-        yield self.level_tree
+        with ScrollableContainer():
+            with Vertical():
+                yield Label("📊 Level Filter", classes="header-label")
+                yield Checkbox("All Levels", value=True, id="level_all")
 
-    def on_mount(self) -> None:
-        """Initialize the level tree"""
-        self.update_levels()
+                # Add checkboxes for each log level
+                levels = [
+                    ("🔵 DEBUG", str(LogLevel.DEBUG)),
+                    ("🟢 INFO", str(LogLevel.INFO)),
+                    ("🟡 WARN", str(LogLevel.WARN)),
+                    ("🔴 ERROR", str(LogLevel.ERROR)),
+                    ("🟣 FATAL", str(LogLevel.FATAL))
+                ]
 
-    def update_levels(self):
-        """Update the level tree with all available levels"""
-        self.level_tree.clear()
+                for display_name, level_value in levels:
+                    checkbox = Checkbox(
+                        display_name, value=False, id=f"level_{level_value}")
+                    checkbox.level_value = level_value  # Store level value
+                    self.level_checkboxes[level_value] = checkbox
+                    yield checkbox
 
-        # Add "All Levels" option
-        all_levels = self.level_tree.root.add("All Levels", "ALL")
+    @on(Checkbox.Changed)
+    def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
+        """Handle checkbox state changes"""
+        checkbox = event.checkbox
 
-        # Add individual log levels with color indicators
-        levels = [
-            ("🔵 DEBUG", str(LogLevel.DEBUG)),
-            ("🟢 INFO", str(LogLevel.INFO)),
-            ("🟡 WARN", str(LogLevel.WARN)),
-            ("🔴 ERROR", str(LogLevel.ERROR)),
-            ("🟣 FATAL", str(LogLevel.FATAL))
-        ]
+        if checkbox.id == "level_all":
+            # All Levels checkbox toggled
+            if checkbox.value:
+                # Select all levels
+                self.selected_levels = {"ALL"}
+                for level_checkbox in self.level_checkboxes.values():
+                    level_checkbox.value = False
+            else:
+                self.selected_levels = set()
+        else:
+            # Individual level checkbox toggled
+            level_value = getattr(checkbox, 'level_value', None)
+            if not level_value:
+                return
 
-        for display_name, level_value in levels:
-            self.level_tree.root.add_leaf(display_name, level_value)
+            all_checkbox = self.query_one("#level_all", Checkbox)
 
-    def on_tree_node_selected(self, event: Tree.NodeSelected[str]) -> None:
-        """Handle level selection"""
-        if event.node.is_root or event.node.data is None:
-            return
+            if checkbox.value:
+                # Level selected
+                self.selected_levels.discard("ALL")
+                self.selected_levels.add(level_value)
+                all_checkbox.value = False
+            else:
+                # Level deselected
+                self.selected_levels.discard(level_value)
 
-        self.selected_level = event.node.data
-        self.post_message(LevelFilterChanged(event.node.data))
+                # If no levels selected, select "All Levels"
+                if not self.selected_levels:
+                    self.selected_levels.add("ALL")
+                    all_checkbox.value = True
 
-    def set_selected_level(self, level: str):
-        """Set the selected level programmatically"""
-        self.selected_level = level
-        # Could add visual indication of selection here if needed
+        # Send updated selection
+        self.post_message(LevelFilterChanged(list(self.selected_levels)))
+
+    def get_selected_levels(self) -> set:
+        """Get currently selected levels"""
+        return self.selected_levels.copy()
+
+    def clear_selection(self):
+        """Clear all selections and select 'All Levels'"""
+        self.selected_levels = {"ALL"}
+        all_checkbox = self.query_one("#level_all", Checkbox)
+        all_checkbox.value = True
+
+        for checkbox in self.level_checkboxes.values():
+            checkbox.value = False

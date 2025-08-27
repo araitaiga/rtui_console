@@ -1,7 +1,6 @@
 """
 UI widgets for ROS2 Console Viewer
 """
-from .controls import ControlPanel
 from .log_detail import LogDetailPanel
 from .log_level_panel import LogLevelPanel
 from .log_table import LogTablePanel
@@ -13,6 +12,5 @@ __all__ = [
     "LogTablePanel",
     "LogDetailPanel",
     "LogLevelPanel",
-    "TextFilterPanel",
-    "ControlPanel",
+    "TextFilterPanel"
 ]
