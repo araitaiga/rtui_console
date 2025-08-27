@@ -1,6 +1,8 @@
 """
 Log table panel widget
 """
+import re
+
 from textual.app import ComposeResult
 from textual.widgets import DataTable
 from textual.widgets import Static
@@ -94,6 +96,21 @@ class LogTablePanel(Static):
         self.filtered_messages = filtered
         self.update_table()
 
+    def _sanitize_text_for_table(self, text):
+        """Sanitize text for safe display in DataTable"""
+        if not isinstance(text, str):
+            text = str(text)
+
+        # Replace control characters and non-printable characters
+        # Keep only printable ASCII and common Unicode characters
+        sanitized = re.sub(r'[^\x20-\x7E\u00A0-\uFFFF]', '�', text)
+
+        # Truncate very long messages to prevent UI issues
+        if len(sanitized) > 500:
+            sanitized = sanitized[:497] + "..."
+
+        return sanitized
+
     def update_table(self):
         """Update table display"""
         self.table.clear()
@@ -104,11 +121,15 @@ class LogTablePanel(Static):
             level_color = LogLevel.COLORS.get(msg.level, "white")
             time_str = msg.timestamp.strftime("%H:%M:%S.%f")[:-3]
 
+            # Sanitize text fields for safe display
+            safe_node = self._sanitize_text_for_table(msg.name)
+            safe_message = self._sanitize_text_for_table(msg.msg)
+
             self.table.add_row(
                 time_str,
                 f"[{level_color}]{level_name}[/{level_color}]",
-                msg.name,
-                msg.msg
+                safe_node,
+                safe_message
             )
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
