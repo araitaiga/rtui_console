@@ -18,8 +18,7 @@ class TextFilterPanel(Static):
     TextFilterPanel {
         padding: 1;
         width: 100%;
-        height: 30%;
-        border-top: inner $primary;
+        height: 100%;
     }
 
     .filter-container {

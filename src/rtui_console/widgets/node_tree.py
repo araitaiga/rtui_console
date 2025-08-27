@@ -21,8 +21,7 @@ class NodeTreePanel(Static):
     NodeTreePanel {
         padding: 1;
         width: 100%;
-        height: 40%;
-        border: inner $primary;
+        height: 100%;
         background: $surface;
         display: block;
     }

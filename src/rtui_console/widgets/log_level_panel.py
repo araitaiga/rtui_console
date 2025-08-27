@@ -20,8 +20,7 @@ class LogLevelPanel(Static):
     LogLevelPanel {
         padding: 0;
         width: 100%;
-        height: 30%;
-        border-top: inner $primary;
+        height: 100%;
     }
 
     ScrollableContainer {

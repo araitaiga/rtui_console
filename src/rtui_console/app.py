@@ -22,6 +22,7 @@ from .models import LogLevel
 from .models import LogMessage
 from .ros_client import LogGenerator
 from .ros_client import ROS2Client
+from .widgets import FilterTabPanel
 from .widgets import LogDetailPanel
 from .widgets import LogLevelPanel
 from .widgets import LogTablePanel
@@ -42,28 +43,27 @@ class ConsoleApp(App):
         background: $panel;
     }
 
-    #left-panel {
+    #filter_tabs {
         width: 30%;
-        layout: vertical;
+        height: 100%;
     }
 
     NodeTreePanel {
         padding: 1;
-        height: 40%;
-        border: inner $primary;
-        background: $panel;
+        height: 100%;
+        background: $surface;
     }
 
     LogLevelPanel {
         padding: 0 1;
-        height: 30%;
-        border-top: inner $primary;
+        height: 100%;
+        background: $surface;
     }
 
     TextFilterPanel {
         padding: 0 1;
-        height: 30%;
-        border-top: inner $primary;
+        height: 100%;
+        background: $surface;
     }
 
     #main {
@@ -105,13 +105,18 @@ class ConsoleApp(App):
         self.log_table_panel = LogTablePanel(id="log_table")
         self.log_detail_panel = LogDetailPanel(id="log_detail")
 
+        # Create filter tab panel and set panels
+        self.filter_tab_panel = FilterTabPanel(id="filter_tabs")
+        self.filter_tab_panel.set_panels(
+            self.node_tree_panel,
+            self.log_level_panel,
+            self.text_filter_panel
+        )
+
     def compose(self) -> ComposeResult:
         yield Header()
         with Horizontal(classes="container"):
-            with Vertical(id="left-panel"):
-                yield self.node_tree_panel
-                yield self.log_level_panel
-                yield self.text_filter_panel
+            yield self.filter_tab_panel
 
             with Vertical(id="main"):
                 yield self.log_table_panel
