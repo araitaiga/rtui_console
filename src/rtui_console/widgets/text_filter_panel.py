@@ -53,11 +53,3 @@ class TextFilterPanel(Static):
     def on_filter_input_changed(self, event: Input.Changed) -> None:
         """Handle filter input change"""
         self.post_message(TextFilterChanged(event.value))
-
-    def clear_filter(self):
-        """Clear the filter input"""
-        self.filter_input.value = ""
-
-    def set_filter_text(self, text: str):
-        """Set filter text programmatically"""
-        self.filter_input.value = text

@@ -56,9 +56,7 @@ class NodeTreePanel(Static):
             with Vertical():
                 yield Label("🔧 Node Filter", classes="header-label")
                 yield Checkbox("All Nodes", value=True, id="node_all")
-                # Add initial dummy nodes to ensure panel is visible
-                yield Checkbox("rtui_console_subscriber", value=False, id="node_debug_1")
-                yield Checkbox("mission_manager_node", value=False, id="node_debug_2")
+                # Only show actual ROS2 nodes - no fixed debug nodes
 
     def update_nodes(self, nodes: set):
         """Update the node checkboxes with new nodes"""
@@ -130,16 +128,3 @@ class NodeTreePanel(Static):
 
         # Send updated selection
         self.post_message(NodeSelected(list(self.selected_nodes)))
-
-    def get_selected_nodes(self) -> set:
-        """Get currently selected nodes"""
-        return self.selected_nodes.copy()
-
-    def clear_selection(self):
-        """Clear all selections and select 'All Nodes'"""
-        self.selected_nodes = {"ALL"}
-        all_checkbox = self.query_one("#node_all", Checkbox)
-        all_checkbox.value = True
-
-        for checkbox in self.node_checkboxes.values():
-            checkbox.value = False

@@ -107,16 +107,3 @@ class LogLevelPanel(Static):
 
         # Send updated selection
         self.post_message(LevelFilterChanged(list(self.selected_levels)))
-
-    def get_selected_levels(self) -> set:
-        """Get currently selected levels"""
-        return self.selected_levels.copy()
-
-    def clear_selection(self):
-        """Clear all selections and select 'All Levels'"""
-        self.selected_levels = {"ALL"}
-        all_checkbox = self.query_one("#level_all", Checkbox)
-        all_checkbox.value = True
-
-        for checkbox in self.level_checkboxes.values():
-            checkbox.value = False
