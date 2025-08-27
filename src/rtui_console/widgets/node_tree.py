@@ -50,6 +50,7 @@ class NodeTreePanel(Static):
         self.nodes = set()
         self.selected_nodes = set(["ALL"])
         self.node_checkboxes = {}
+        self._updating_ui = False  # Flag to prevent event loops
 
     def compose(self) -> ComposeResult:
         with ScrollableContainer():
@@ -90,33 +91,38 @@ class NodeTreePanel(Static):
     @on(Checkbox.Changed)
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         """Handle checkbox state changes"""
+        # Skip if we're programmatically updating UI
+        if self._updating_ui:
+            return
+
         checkbox = event.checkbox
 
         if checkbox.id == "node_all":
             # All Nodes checkbox toggled
             if checkbox.value:
-                # Select all nodes
+                # Select all nodes - clear individual selections
                 self.selected_nodes = {"ALL"}
+                self._updating_ui = True
                 for node_checkbox in self.node_checkboxes.values():
                     node_checkbox.value = False
-                # Also uncheck debug nodes
-                try:
-                    self.query_one("#node_debug_1", Checkbox).value = False
-                    self.query_one("#node_debug_2", Checkbox).value = False
-                except:
-                    pass
+                self._updating_ui = False
             else:
-                self.selected_nodes = set()
+                # "All Nodes" manually unchecked
+                # Remove "ALL" from selection but keep individual nodes
+                self.selected_nodes.discard("ALL")
         else:
             # Individual node checkbox toggled
             node_name = getattr(checkbox, 'node_name', checkbox.label.plain)
             all_checkbox = self.query_one("#node_all", Checkbox)
 
             if checkbox.value:
-                # Node selected
+                # Node selected - remove "ALL" and add specific node
                 self.selected_nodes.discard("ALL")
                 self.selected_nodes.add(node_name)
+                # Safely update "All Nodes" checkbox without triggering events
+                self._updating_ui = True
                 all_checkbox.value = False
+                self._updating_ui = False
             else:
                 # Node deselected
                 self.selected_nodes.discard(node_name)
@@ -124,7 +130,9 @@ class NodeTreePanel(Static):
                 # If no nodes selected, select "All Nodes"
                 if not self.selected_nodes:
                     self.selected_nodes.add("ALL")
+                    self._updating_ui = True
                     all_checkbox.value = True
+                    self._updating_ui = False
 
         # Send updated selection
         self.post_message(NodeSelected(list(self.selected_nodes)))
