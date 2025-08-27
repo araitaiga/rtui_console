@@ -18,18 +18,22 @@ from textual.widgets import Header
 from textual.widgets import Input
 from textual.widgets import Select
 
+from .events import LevelFilterChanged
 from .events import LogMessageSelected
 from .events import LogsCleared
 from .events import NodeSelected
 from .events import TestLogsGenerated
+from .events import TextFilterChanged
 from .models import LogLevel
 from .models import LogMessage
 from .ros_client import LogGenerator
 from .ros_client import ROS2Client
 from .widgets import ControlPanel
 from .widgets import LogDetailPanel
+from .widgets import LogLevelPanel
 from .widgets import LogTablePanel
 from .widgets import NodeTreePanel
+from .widgets import TextFilterPanel
 
 
 class ConsoleApp(App):
@@ -45,9 +49,26 @@ class ConsoleApp(App):
         background: $panel;
     }
 
+    #left-panel {
+        width: 30%;
+        layout: vertical;
+    }
+
     NodeTreePanel {
         padding-left: 2;
-        width: 30%;
+        height: 40%;
+    }
+
+    LogLevelPanel {
+        padding-left: 2;
+        height: 30%;
+        border-top: inner $primary;
+    }
+
+    TextFilterPanel {
+        padding: 1 2;
+        height: 30%;
+        border-top: inner $primary;
     }
 
     #main {
@@ -101,6 +122,8 @@ class ConsoleApp(App):
 
         # UI Components
         self.node_tree_panel = NodeTreePanel(id="node_tree")
+        self.log_level_panel = LogLevelPanel(id="log_level")
+        self.text_filter_panel = TextFilterPanel(id="text_filter")
         self.log_table_panel = LogTablePanel(id="log_table")
         self.log_detail_panel = LogDetailPanel(id="log_detail")
         self.control_panel = ControlPanel(id="controls")
@@ -108,7 +131,10 @@ class ConsoleApp(App):
     def compose(self) -> ComposeResult:
         yield Header()
         with Horizontal(classes="container"):
-            yield self.node_tree_panel
+            with Vertical(id="left-panel"):
+                yield self.node_tree_panel
+                yield self.log_level_panel
+                yield self.text_filter_panel
 
             with Vertical(id="main"):
                 yield self.log_table_panel
@@ -192,19 +218,16 @@ class ConsoleApp(App):
         """Handle test logs generated event"""
         self.notify(f"Generated {event.count} test logs")
 
-    # Control Event Handlers
-    @on(Select.Changed, "#level_select")
-    def on_level_select_changed(self, event: Select.Changed) -> None:
-        """Handle log level selection change"""
-        if event.value == "ALL":
+    def on_level_filter_changed(self, event: LevelFilterChanged) -> None:
+        """Handle log level filter change"""
+        if event.level == "ALL":
             self.log_table_panel.set_level_filter(LogLevel.DEBUG)
         else:
-            self.log_table_panel.set_level_filter(int(event.value))
+            self.log_table_panel.set_level_filter(int(event.level))
 
-    @on(Input.Changed, "#filter_input")
-    def on_filter_input_changed(self, event: Input.Changed) -> None:
-        """Handle filter text change"""
-        self.log_table_panel.set_text_filter(event.value)
+    def on_text_filter_changed(self, event: TextFilterChanged) -> None:
+        """Handle text filter change"""
+        self.log_table_panel.set_text_filter(event.text)
 
     @on(Button.Pressed, "#pause_btn")
     def on_pause_pressed(self) -> None:

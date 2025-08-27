@@ -6,14 +6,17 @@ designed with rtui-inspired interface patterns.
 """
 
 from .app import ConsoleApp
+from .events import LevelFilterChanged
 from .events import LogMessageSelected
 from .events import LogsCleared
 from .events import NodeSelected
 from .events import TestLogsGenerated
+from .events import TextFilterChanged
 from .models import LogLevel
 from .models import LogMessage
 from .ros_client import LogGenerator
 from .ros_client import ROS2Client
+from .widgets import TextFilterPanel
 
 __version__ = "1.0.0"
 __author__ = "ROS2 Console Viewer Team"
@@ -26,6 +29,9 @@ __all__ = [
     "LogMessageSelected",
     "LogsCleared",
     "TestLogsGenerated",
+    "LevelFilterChanged",
+    "TextFilterChanged",
+    "TextFilterPanel",
     "ROS2Client",
     "LogGenerator",
 ]

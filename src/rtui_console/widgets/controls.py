@@ -1,15 +1,11 @@
 """
 Control panel widget
 """
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Button
-from textual.widgets import Input
-from textual.widgets import Label
-from textual.widgets import Select
 from textual.widgets import Static
-
-from ..models import LogLevel
 
 
 class ControlPanel(Static):
@@ -35,29 +31,9 @@ class ControlPanel(Static):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.level_select = Select(
-            [
-                ("All Levels", "ALL"),
-                ("DEBUG", str(LogLevel.DEBUG)),
-                ("INFO", str(LogLevel.INFO)),
-                ("WARN", str(LogLevel.WARN)),
-                ("ERROR", str(LogLevel.ERROR)),
-                ("FATAL", str(LogLevel.FATAL))
-            ],
-            value="ALL",
-            id="level_select"
-        )
-        self.filter_input = Input(
-            placeholder="Filter messages...", id="filter_input")
         self.paused = False
 
     def compose(self) -> ComposeResult:
-        with Container(classes="controls-row"):
-            yield Label("Level:", classes="control-item")
-            yield self.level_select
-            yield Label("Filter:", classes="control-item")
-            yield self.filter_input
-
         with Container(classes="controls-row"):
             yield Button("Pause", id="pause_btn", variant="primary", classes="control-item")
             yield Button("Clear", id="clear_btn", variant="warning", classes="control-item")

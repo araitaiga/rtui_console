@@ -15,6 +15,7 @@ class NodeTreePanel(Static):
     NodeTreePanel {
         padding-left: 2;
         width: 30%;
+        height: 40%;
     }
     """
 

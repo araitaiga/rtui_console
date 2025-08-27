@@ -33,3 +33,19 @@ class TestLogsGenerated(Message):
     def __init__(self, count: int) -> None:
         super().__init__()
         self.count = count
+
+
+class LevelFilterChanged(Message):
+    """Event when log level filter is changed"""
+
+    def __init__(self, level: str) -> None:
+        super().__init__()
+        self.level = level
+
+
+class TextFilterChanged(Message):
+    """Event when text filter is changed"""
+
+    def __init__(self, text: str) -> None:
+        super().__init__()
+        self.text = text
