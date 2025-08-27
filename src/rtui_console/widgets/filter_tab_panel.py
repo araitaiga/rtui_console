@@ -22,7 +22,8 @@ class FilterTabPanel(Static):
     }
 
     .tab-buttons {
-        layout: horizontal;
+        layout: grid;
+        grid-size: 3 1;
         height: 3;
         width: 100%;
         background: $boost;
@@ -30,8 +31,10 @@ class FilterTabPanel(Static):
 
     .tab-button {
         height: 3;
-        width: 1fr;
+        width: 100%;
         margin: 0;
+        padding: 0;
+        text-align: center;
     }
 
     .tab-button.active {
