@@ -15,12 +15,19 @@ from ..models import LogMessage
 class LogTablePanel(Static):
     """Main log display panel with table"""
 
+    # Constants for log management
+    MAX_TOTAL_MESSAGES = 10000
+    MAX_DISPLAY_MESSAGES = 5000
+    MAX_MESSAGE_LENGTH = 500
+    MESSAGE_TRUNCATE_LENGTH = 497
+
     DEFAULT_CSS = """
     LogTablePanel {
         height: 70%;
         border-bottom: inner $primary;
     }
     """
+    # CSS_PATH = "../css/widgets/log_table.tcss"
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -42,8 +49,9 @@ class LogTablePanel(Static):
         self.log_messages.append(log_msg)
 
         # Limit total messages to prevent memory issues
-        if len(self.log_messages) > 5000:
-            self.log_messages = self.log_messages[-4000:]
+        if len(self.log_messages) > self.MAX_TOTAL_MESSAGES:
+            self.log_messages = self.log_messages[-(
+                self.MAX_TOTAL_MESSAGES - 1000):]
 
         self.apply_filters()
 
@@ -103,11 +111,11 @@ class LogTablePanel(Static):
 
         # Replace control characters and non-printable characters
         # Keep only printable ASCII and common Unicode characters
-        sanitized = re.sub(r'[^\x20-\x7E\u00A0-\uFFFF]', '�', text)
+        sanitized = re.sub(r'[^\x20-\x7E\u00A0-\uFFFF]', '', text)
 
         # Truncate very long messages to prevent UI issues
-        if len(sanitized) > 500:
-            sanitized = sanitized[:497] + "..."
+        if len(sanitized) > self.MAX_MESSAGE_LENGTH:
+            sanitized = sanitized[:self.MESSAGE_TRUNCATE_LENGTH] + "..."
 
         return sanitized
 
@@ -116,7 +124,7 @@ class LogTablePanel(Static):
         self.table.clear()
 
         # Show latest messages first (reverse order)
-        for msg in reversed(self.filtered_messages[-1000:]):
+        for msg in reversed(self.filtered_messages[-self.MAX_DISPLAY_MESSAGES:]):
             level_name = LogLevel.NAMES.get(msg.level, "UNKNOWN")
             level_color = LogLevel.COLORS.get(msg.level, "white")
             time_str = msg.timestamp.strftime("%H:%M:%S.%f")[:-3]
