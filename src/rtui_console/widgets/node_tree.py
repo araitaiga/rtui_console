@@ -30,11 +30,27 @@ class NodeTreePanel(Static):
         width: 100%;
         height: 100%;
         scrollbar-size: 1 1;
+        scrollbar-gutter: stable;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+
+    Vertical {
+        width: auto;
+        min-width: 100%;
+        height: auto;
+        min-height: 100%;
+        display: block;
     }
 
     Checkbox {
-        width: 100%;
+        width: auto;
+        min-width: 100%;
         margin: 0;
+        height: auto;
+        min-height: 2;
+        padding: 0 1;
+        display: block;
     }
 
     .header-label {
@@ -42,6 +58,7 @@ class NodeTreePanel(Static):
         background: $accent;
         color: $text;
         padding: 0 1;
+        height: 2;
     }
     """
 
@@ -83,8 +100,10 @@ class NodeTreePanel(Static):
             # Use timestamp + index to ensure unique IDs across updates
             unique_id = f"node_{i}_{int(time.time() * 1000000) % 1000000}"
 
-            checkbox = Checkbox(node, value=False, id=unique_id)
-            checkbox.node_name = node  # Store node name as attribute
+            # Keep full node name for horizontal scrolling
+            display_name = node
+            checkbox = Checkbox(display_name, value=False, id=unique_id)
+            checkbox.node_name = node  # Store full node name as attribute
             self.node_checkboxes[node] = checkbox
             container.mount(checkbox)
 

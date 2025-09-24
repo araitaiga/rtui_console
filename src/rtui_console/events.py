@@ -1,6 +1,8 @@
 """
 Custom events for ROS2 Console Viewer
 """
+from typing import Optional
+
 from textual.message import Message
 
 from .models import LogMessage
@@ -21,14 +23,13 @@ class NodeSelected(Message):
 class LogMessageSelected(Message):
     """Event when a log message is selected"""
 
-    def __init__(self, log_message: LogMessage) -> None:
+    def __init__(self, log_message: Optional[LogMessage]) -> None:
         super().__init__()
         self.log_message = log_message
 
 
 class LogsCleared(Message):
     """Event when logs are cleared"""
-    pass
 
 
 class TestLogsGenerated(Message):

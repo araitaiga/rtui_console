@@ -1,0 +1,48 @@
+/* Main application styles for ROS2 Console Viewer */
+
+Screen {
+    layout: vertical;
+}
+
+.container {
+    height: 100%;
+    background: $panel;
+}
+
+#filter_tabs {
+    width: 30%;
+    height: 100%;
+}
+
+NodeTreePanel {
+    padding: 1;
+    height: 100%;
+    background: $surface;
+}
+
+LogLevelPanel {
+    padding: 0 1;
+    height: 100%;
+    background: $surface;
+}
+
+TextFilterPanel {
+    padding: 0 1;
+    height: 100%;
+    background: $surface;
+}
+
+#main {
+    border-left: inner $primary;
+    width: 70%;
+}
+
+LogTablePanel {
+    height: 70%;
+    border-bottom: inner $primary;
+}
+
+LogDetailPanel {
+    height: 30%;
+    padding: 1 2;
+}

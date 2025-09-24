@@ -1,0 +1,44 @@
+/* Node tree panel styles */
+
+NodeTreePanel {
+    padding: 1;
+    width: 100%;
+    height: 100%;
+    background: $surface;
+    display: block;
+}
+
+ScrollableContainer {
+    width: 100%;
+    height: 100%;
+    scrollbar-size: 1 1;
+    scrollbar-gutter: stable;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+Checkbox {
+    width: auto;
+    min-width: 100%;
+    margin: 0;
+    height: auto;
+    min-height: 2;
+    padding: 0 1;
+    display: block;
+}
+
+Vertical {
+    width: auto;
+    min-width: 100%;
+    height: auto;
+    min-height: 100%;
+    display: block;
+}
+
+.header-label {
+    width: 100%;
+    background: $accent;
+    color: $text;
+    padding: 0 1;
+    height: 2;
+}

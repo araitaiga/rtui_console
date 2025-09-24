@@ -19,7 +19,6 @@ from .events import NodeSelected
 from .events import TestLogsGenerated
 from .events import TextFilterChanged
 from .models import LogLevel
-from .models import LogMessage
 from .ros_client import LogGenerator
 from .ros_client import ROS2Client
 from .widgets import FilterTabPanel
@@ -41,6 +40,15 @@ class ConsoleApp(App):
     .container {
         height: 100%;
         background: $panel;
+    }
+
+    #top_panel {
+        height: 70%;
+        border-bottom: inner $primary;
+    }
+
+    #bottom_panel {
+        height: 30%;
     }
 
     #filter_tabs {
@@ -66,18 +74,12 @@ class ConsoleApp(App):
         background: $surface;
     }
 
-    #main {
-        border-left: inner $primary;
-        width: 70%;
-    }
-
     LogTablePanel {
-        height: 70%;
-        border-bottom: inner $primary;
+        height: 100%;
     }
 
     LogDetailPanel {
-        height: 30%;
+        height: 100%;
         padding: 1 2;
     }
     """
@@ -115,11 +117,14 @@ class ConsoleApp(App):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Horizontal(classes="container"):
-            yield self.filter_tab_panel
-
-            with Vertical(id="main"):
+        with Vertical(classes="container"):
+            # Top panel (70% height) - Log table only
+            with Vertical(id="top_panel"):
                 yield self.log_table_panel
+
+            # Bottom panel (30% height) - Split horizontally
+            with Horizontal(id="bottom_panel"):
+                yield self.filter_tab_panel
                 yield self.log_detail_panel
 
         yield Footer()
@@ -188,9 +193,14 @@ class ConsoleApp(App):
 
     def on_log_message_selected(self, event: LogMessageSelected) -> None:
         """Handle log message selection from table"""
-        self.log_detail_panel.set_message(event.log_message)
+        if event.log_message is None:
+            # 選択が解除された場合
+            self.log_detail_panel.clear_details()
+        else:
+            # 新しいログが選択された場合
+            self.log_detail_panel.set_message(event.log_message)
 
-    def on_logs_cleared(self, event: LogsCleared) -> None:
+    def on_logs_cleared(self, _event: LogsCleared) -> None:
         """Handle logs cleared event"""
         self.log_detail_panel.clear_details()
         self.node_tree_panel.update_nodes(set())
@@ -231,12 +241,12 @@ class ConsoleApp(App):
         filename = f"ros_logs_{timestamp}.txt"
 
         try:
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
                 for msg in self.log_table_panel.filtered_messages:
                     level_name = LogLevel.NAMES.get(msg.level, "UNKNOWN")
                     f.write(
                         f"{msg.timestamp.isoformat()} [{level_name}] {msg.name}: {msg.msg}\n")
 
             self.notify(f"Logs saved to {filename}")
-        except Exception as e:
+        except (OSError, IOError) as e:
             self.notify(f"Error saving logs: {e}", severity="error")

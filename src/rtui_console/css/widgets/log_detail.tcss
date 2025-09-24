@@ -1,0 +1,6 @@
+/* Log detail panel styles */
+
+LogDetailPanel {
+    height: 30%;
+    padding: 1 2;
+}

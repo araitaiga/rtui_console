@@ -1,0 +1,22 @@
+/* Log table panel styles */
+
+LogTablePanel {
+    height: 70%;
+    border-bottom: inner $primary;
+    display: block;
+}
+
+/* DataTable styles to fix scrollbar position */
+LogTablePanel > DataTable {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
+/* Ensure the table container has fixed height */
+LogTablePanel > DataTable > .datatable--scrollable {
+    height: 100%;
+    overflow: auto;
+    scrollbar-gutter: stable;
+}

@@ -27,7 +27,7 @@ class LogTablePanel(Static):
         border-bottom: inner $primary;
     }
     """
-    # CSS_PATH = "../css/widgets/log_table.tcss"
+    CSS_PATH = "../css/widgets/log_table.tcss"
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -37,12 +37,16 @@ class LogTablePanel(Static):
         self.selected_nodes = ["ALL"]
         self.selected_levels = ["ALL"]
         self.filter_text = ""
+        self._saved_scroll_x = 0
+        self._selected_log = None  # 選択されたログメッセージを保存
 
     def compose(self) -> ComposeResult:
         yield self.table
 
     def on_mount(self) -> None:
         self.table.add_columns("Time", "Level", "Node", "Message")
+        # Set fixed height for the table to prevent scrollbar position changes
+        self.table.styles.height = "100%"
 
     def add_log_message(self, log_msg: LogMessage):
         """Add a new log message"""
@@ -121,6 +125,11 @@ class LogTablePanel(Static):
 
     def update_table(self):
         """Update table display"""
+        # Save current scroll positions
+        saved_scroll_x = getattr(self.table, 'scroll_x', 0)
+        saved_scroll_y = getattr(self.table, 'scroll_y', 0)
+
+        # Clear and rebuild table
         self.table.clear()
 
         # Show latest messages first (reverse order)
@@ -140,6 +149,34 @@ class LogTablePanel(Static):
                 safe_message
             )
 
+        # Restore scroll positions immediately after table is updated
+        if hasattr(self.table, 'scroll_x') and saved_scroll_x > 0:
+            self.table.scroll_x = saved_scroll_x
+        if hasattr(self.table, 'scroll_y') and saved_scroll_y > 0:
+            self.table.scroll_y = saved_scroll_y
+
+        # 選択されたログのハイライトを復元
+        if self._selected_log is not None:
+            self._restore_selected_log_highlight()
+
+    def _restore_selected_log_highlight(self):
+        """選択されたログのハイライトを復元"""
+        if self._selected_log is None:
+            return
+
+        # フィルタされたメッセージから選択されたログを探す
+        for i, msg in enumerate(self.filtered_messages):
+            if (msg.timestamp == self._selected_log.timestamp and
+                msg.level == self._selected_log.level and
+                msg.name == self._selected_log.name and
+                    msg.msg == self._selected_log.msg):
+                # テーブルの行インデックスを計算（逆順なので）
+                table_row = len(self.filtered_messages) - 1 - i
+                if 0 <= table_row < len(self.filtered_messages):
+                    # move_cursorメソッドを使用してカーソルを移動
+                    self.table.move_cursor(row=table_row, animate=False)
+                break
+
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         """Handle row selection"""
         if event.cursor_row < len(self.filtered_messages):
@@ -147,12 +184,27 @@ class LogTablePanel(Static):
             msg_index = len(self.filtered_messages) - 1 - event.cursor_row
             if 0 <= msg_index < len(self.filtered_messages):
                 selected_msg = self.filtered_messages[msg_index]
-                self.post_message(LogMessageSelected(selected_msg))
+
+                # 同じログが既に選択されている場合は選択を解除
+                if (self._selected_log is not None and
+                    self._selected_log.timestamp == selected_msg.timestamp and
+                    self._selected_log.level == selected_msg.level and
+                    self._selected_log.name == selected_msg.name and
+                        self._selected_log.msg == selected_msg.msg):
+                    # 選択状態を解除
+                    self._selected_log = None
+                    self.post_message(LogMessageSelected(None))
+                else:
+                    # 新しいログを選択
+                    self._selected_log = selected_msg
+                    self.post_message(LogMessageSelected(selected_msg))
 
     def clear_logs(self):
         """Clear all log messages"""
         self.log_messages.clear()
         self.filtered_messages.clear()
+        self._saved_scroll_x = 0  # Reset scroll position when clearing logs
+        self._selected_log = None  # Reset selected log when clearing logs
         self.update_table()
 
     def get_filtered_count(self) -> int:
